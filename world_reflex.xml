@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<world>
+  <robot name="TX90L-pr2" file="../Klampt/data/robots/reflex_col_new.rob" translation="0.0 0.0 0.2" rotateY="0.78539" config="17 0 0 0 0.78539 0 0 0 0 0.78539 0 0 0 0 0 0 0 0"/>
+  <rigidObject name="srimug" file="../Klampt/data/objects/block_small.obj"  position="0.17 0.0 0.3" >
+    <graspGenerator type="GraspIt" file="../Klampt/data/objects/solution2.txt" />
+  </rigidObject> 
+  <target position="-0.5 0 0.2" />
+  <simulation>
+     <object index="0">
+       <geometry padding="0.005" />
+     </object>
+  </simulation>
+</world>s
