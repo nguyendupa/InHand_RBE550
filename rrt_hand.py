@@ -37,6 +37,8 @@ def forward_kinematics(f1,f2,f3,k1,k2):
 	y = [y1,y2,y3]
 	z = [z1,z2,z3]
 	return [x,y,z]
+
+
 global rotateXPoints, testPose,numstep
 rotateXPoints = [\
 [0.785, 0.785, -0.0000, 0.000 + math.pi/8, -0.000 + math.pi/4], \

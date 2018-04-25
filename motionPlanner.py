@@ -55,6 +55,9 @@ NUMNODES = 500
 EPSILON = 0.5 # 7
 RADIUS=3.0 #15
 
+# Global CS
+global CS1,CS2,CS3
+
 # distance between two points
 def dist(p1,p2):
 	return math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
@@ -438,6 +441,129 @@ def detectRegrasp(current,last,obs,stepnum_side):
 			print "Detect Regrasp at Finger: ", (i+1)
 			return (i+1)
 	return 0
+
+
+def forward_kinematics(f1,k1,f2,k2,f3,k3):
+	b_c  = 0.25  # bend constant of flexible finger 
+	fl_1 = 77.82 # finger length 1: unit mm
+	fl_2 = 45.55 # finger length 2
+	
+	offset_f1 = [40,30.75] # f1 joint position xy
+	offset_f2 = [40,-30.75] # f1 joint position xy
+	offset_f3 = [-40,0] # f1 joint position xy
+	# Finger f1:
+	lx_f1 = fl_1*math.cos(f1)+fl_2*math.cos(f1+f1*b_c)
+	ly_f1 = fl_1*math.sin(f1)+fl_2*math.sin(f1+f1*b_c)
+	x1 = lx_f1*math.cos(k1) + offset_f1[0]
+	y1 = lx_f1*math.sin(k1) + offset_f1[1]
+	z1 = ly_f1 
+
+	# Finger f2:
+	lx_f2 = fl_1*math.cos(f2)+fl_2*math.cos(f2+f1*b_c)
+	ly_f2 = fl_1*math.sin(f2)+fl_2*math.sin(f2+f1*b_c)
+	x2 = lx_f2*math.cos(k2) + offset_f2[0]
+	y2 = lx_f2*math.sin(k2) + offset_f2[1]
+	z2 = ly_f2
+
+	# Finger f3:
+	lx_f3 = fl_1*math.cos(f1)+fl_2*math.cos(f1+f1*b_c)
+	ly_f3 = fl_1*math.sin(f1)+fl_2*math.sin(f1+f1*b_c)
+	x3 = -lx_f3*math.cos(k3) + offset_f3[0]
+	y3 = lx_f3*math.sin(k3) + offset_f3[1]
+	z3 = ly_f3
+
+
+	x = [x1,x2,x3]
+	y = [y1,y2,y3]
+	z = [z1,z2,z3]
+	return [x,y,z]
+def fw_kin_single(f,k,num):
+	b_c  = 0.25  # bend constant of flexible finger 
+	fl_1 = 77.82 # finger length 1: unit mm
+	fl_2 = 45.55 # finger length 2
+	
+	offset_f1 = [40,30.75] # f1 joint position xy
+	offset_f2 = [40,-30.75] # f1 joint position xy
+	offset_f3 = [-40,0] # f1 joint position xy
+	offset = [[40,30.75],[40,-30.75],[-40,0]]
+	
+	# All 3 finger has some kinematic except different offset
+	lx_f = fl_1*math.cos(f)+fl_2*math.cos(f+f*b_c)
+	ly_f = fl_1*math.sin(f)+fl_2*math.sin(f+f*b_c)
+	x1 = lx_f*math.cos(k) + offset[num-1][0]
+	y1 = lx_f*math.sin(k) + offset[num-1][1]
+	z1 = ly_f
+	
+	#return [x1,y1,z1] 
+	return [x1,y1]
+
+def explore_singleCS(num):
+	num_nodes = 100
+	configSpace = {}
+
+	f_space = 0.0 # f goes from 0.0 to 3*pi/4
+	step_f = (3*math.pi/4)/num_nodes
+	
+	if (num == 3):
+		k_space = -math.pi/2 # k3 goes from -pi/2 to pi/2
+		step_k = math.pi/num_nodes
+	elif (num==1):
+		k_space = -math.pi/8
+		step_k = (math.pi/2+math.pi/8)/num_nodes
+	elif (num==2):
+		k_space = -math.pi/2
+		step_k = (math.pi/2+math.pi/8)/num_nodes
+
+	for i in range(0,num_nodes):
+		
+		for j in range(0,num_nodes):
+			configSpace[(f_space,k_space)] = fw_kin_single(f_space,k_space,num) 
+			k_space = k_space + step_k
+		if (num == 3):
+			k_space = -math.pi/2
+		elif (num==1):
+			k_space = -math.pi/8
+		elif (num==2):
+			k_space = -math.pi/2
+		f_space = f_space + step_f
+	return configSpace
+def exploreCS():
+	global CS1,CS2,CS3
+	CS1 = explore_singleCS(1)
+	CS2 = explore_singleCS(2)
+	CS3 = explore_singleCS(3)
+
+# find the closest config space to a pose or 3 point (x,y)
+def closestConfigspace(p1,p2,p3):
+	min_value_1 = 99999
+	min_value_2 = 99999
+	min_value_3 = 99999
+
+	for config in CS1:
+		value = dist(p1,CS1[config])
+		if (min_value_1>value):
+			min_value_1 = value
+			current_config_1 = config
+
+	for config in CS2:
+		value = dist(p2,CS2[config])
+		if (min_value_2>value):
+			min_value_2 = value
+			current_config_2 = config
+
+	for config in CS3:
+		value = dist(p3,CS3[config])
+		if (min_value_3>value):
+			min_value_3 = value
+			current_config_3 = config
+
+
+	# print current_key
+	# print CS1[current_key]
+
+	# return 3 current config each is just (f,k)
+	return [current_config_1,current_config_2,current_config_3]
+
 # main function
 if __name__ == "__main__":
 	fig = plt.figure()
@@ -447,7 +573,8 @@ if __name__ == "__main__":
 	all_pose = []
 	stepnum_side = 10
 	stepnum_time = 10
-	# Rotate Test
+
+	# Rotate Test and Grasp Planning Structure
 	for i in range(0,stepnum_time):
 		test_rotate = rotateObs(obs_1, i*5)
 		# draw extended geometry
@@ -503,10 +630,18 @@ if __name__ == "__main__":
 		last_pose = ori_grasp
 		last_ind = ind
 			
-		
+	# Kinematics Test ############################################
+	print forward_kinematics(0.0,0.0,0.0,0.0,0.0,0.0)
+	exploreCS()
+	config_test = closestConfigspace([164.0,31.0],[164.0,-31.0],[-164.0,0.0])
+	finger1 = list(config_test[0])
+	finger2 = list(config_test[1])
+	finger3 = list(config_test[2])
+	print config_test
+	print forward_kinematics(finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1])
 	
 	#print "Center of Obs", findCenterPoint(obs_3)
-	# RRT Test Stuff
+	# RRT Test Stuff ############################################
 # 	[17.712376928240996, 15.390656589485101]
 # [10.311221522147784, 21.069762874806809]
 	# test_rrt_node = bidirectionalRRT([75, 75],[-75, -75],obs_1)
