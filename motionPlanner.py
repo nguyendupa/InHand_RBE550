@@ -51,9 +51,9 @@ offset.append(offset_f3)
 # Angle offset for eq tri
 off_30dg = 0.0
 # RRT Stuff
-NUMNODES = 3000
-EPSILON = 3.0 # 7
-RADIUS=5.0 #15
+NUMNODES = 500
+EPSILON = 0.5 # 7
+RADIUS=3.0 #15
 
 # distance between two points
 def dist(p1,p2):
@@ -88,7 +88,7 @@ def findClosestPoint(extGeo,comparedPoints):
 		min_list.append(darr.min())
 		# if (i == 2):
 		# 	print dist_list
-		print "Min: ", darr.min(), "Index: ", darr.argmin()
+		#print "Min: ", darr.min(), "Index: ", darr.argmin()
 	return index_list, min_list
 
 # Plan the original Grasp
@@ -110,7 +110,7 @@ def planStartGrasp(obsGeo):
 
 	# Center point of Obs
 	center_point = findCenterPoint(obsGeo)
-	print "Center Point: ",center_point
+	#print "Center Point: ",center_point
 	# Equ Tri Vertices
 	eq_points = findEqTriPoint(pivot_point,center_point)
 	# Find new cloest Point
@@ -123,7 +123,7 @@ def planStartGrasp(obsGeo):
 	# 			min_dummy = dist(points,offset[i])
 	closest_points = [obs_points[index_list[0]],obs_points[index_list[1]],obs_points[index_list[2]]]
 	
-	return closest_points
+	return closest_points, index_list
 
 # plan rotate point of obs an angle
 def rotateObs(obsGeo, rotateAngleDegree):
@@ -163,11 +163,7 @@ def extendGeometry(obsGeo,numstep):
 	#print allpoints
 	return allpoints
 
-# Regrasp Planning
-# start & end: 3 p (x,y)
-# obs current obs config 4 p (x,y)
-def regrasp(start,end,obs):
-	return end
+
 
 # For RRT Stuff
 # Cost of node
@@ -308,8 +304,8 @@ def rrt(startAPoint,endAPoint,OBS):
 def bidirectionalRRT(startAPoint,endAPoint,OBS):
 	#initialize and prepare screen
 	nodes = []
-	XDIM = 80
-	YDIM = 80
+	XDIM = 80.0
+	YDIM = 80.0
 	#nodes.append(Node(XDIM/2.0,YDIM/2.0)) # Start in the center
 	nodes.append(Node(startAPoint[0],startAPoint[1]))
 	start=nodes[0]
@@ -387,10 +383,61 @@ def bidirectionalRRT(startAPoint,endAPoint,OBS):
 	# draw from the previous newnode and newnode_goal when we break out of for loop
 	#print("Path legnth: " + str(newnode.cost+newnode_goal.cost))	# print out cost length
 	return getSolutionPath(start,newnode,nodes) + getSolutionPath(goal,newnode_goal,nodes_goal)
-	 
+def nodeToList(nodes):
+	listofnode = []
+	for node in nodes:
+		listofnode.append([node.x,node.y])
+	return listofnode
+# Regrasp Planning
+# start & end: 3 p (x,y)
+# obs current obs config 4 p (x,y)
+def regrasp(start,end,obs,check):
+	#test_rrt_node = bidirectionalRRT(start,end,obs)
+	print "Star Regrasp"
+	resultPose = []
+	list_extra_poses = []
 
-def detectRegrasp(start,end,obs):
-	return False
+	startNode = copy.deepcopy(start[check-1])
+	test_start_node = copy.deepcopy(start[check-1])
+	list_extra_poses.append(test_start_node)
+	startNode[0] = round(startNode[0]+np.sign(startNode[0])*2,1)
+	startNode[1] = round(startNode[1]+np.sign(startNode[1])*2,1)
+	#print startNode
+	endNode = copy.deepcopy(end[check-1])
+	endNode[0] = round(endNode[0] + np.sign(endNode[0])*2,1)
+	endNode[1] = round(endNode[1] + np.sign(endNode[1])*2,1)
+	#print endNode
+	
+	list_extra_poses = nodeToList(bidirectionalRRT(startNode,endNode,obs))
+	test_end_node = copy.deepcopy(end[check-1])
+	#print test_end_node
+	list_extra_poses.append(test_end_node)
+
+	for j in range(0,len(list_extra_poses)):
+		if (check-1) == 0:
+			resultPose.append([list_extra_poses[j],start[1],start[2]])
+		elif (check-1) == 1:
+			resultPose.append([start[0],list_extra_poses[j],start[2]])
+		elif (check-1) == 2:
+			resultPose.append([start[0],start[1],list_extra_poses[j]])
+
+	#print list_extra_poses
+	#print resultPose
+	return resultPose
+
+def detectRegrasp(current,last,obs,stepnum_side):
+	inst1 = [int(last[0]/stepnum_side),int(last[1]/stepnum_side),int(last[2]/stepnum_side)]
+	inst2 = [int(current[0]/stepnum_side),int(current[1]/stepnum_side),int(current[2]/stepnum_side)]
+	print current
+	print last
+	print inst1
+	print inst2
+	for i in range(0,len(inst1)):
+		if not ((inst1[i] == inst2[i]) or (current[i]%stepnum_side == 0) \
+			or (last[i]%stepnum_side == 0)):
+			print "Detect Regrasp at Finger: ", (i+1)
+			return (i+1)
+	return 0
 # main function
 if __name__ == "__main__":
 	fig = plt.figure()
@@ -398,12 +445,14 @@ if __name__ == "__main__":
 	# Initial Angle setup stuff
 	off_30dg = np.radians(30)
 	all_pose = []
+	stepnum_side = 10
+	stepnum_time = 10
 	# Rotate Test
-	for i in range(0,10):
+	for i in range(0,stepnum_time):
 		test_rotate = rotateObs(obs_1, i*5)
 		# draw extended geometry
-		obs_points = extendGeometry(test_rotate,10)
-		print "Length Obs: ", len(obs_points)
+		obs_points = extendGeometry(test_rotate,stepnum_side)
+		print "Length Obs: ", i
 		x = []
 		y = []
 		z = []
@@ -417,36 +466,59 @@ if __name__ == "__main__":
 		# draw original grasp
 
 		# Control loop for regrasp 
-		ori_grasp = planStartGrasp(test_rotate)
-		if (i>0):
-			if not detectRegrasp(ori_grasp,last_pose,test_rotate):
-				all_pose.append(ori_grasp)
-			else:
-				all_pose.append(regrasp(ori_grasp,last_pose,test_rotate))
-		else:
-			all_pose.append(ori_grasp)
-			last_pose = ori_grasp
+		(ori_grasp, ind) = planStartGrasp(test_rotate)
 		x = []
 		y = []
 		z = []
+
 		for point in ori_grasp:
+			#print point
 			x.append(point[0])
 			y.append(point[1])
 			z.append(i)
-		ax.scatter(x, y, z ,c='r',marker='o')
+		ax.scatter(x, y, z ,c='r',marker='o',alpha=0.5)
+
+		if (i>0):
+			check = detectRegrasp(ind,last_ind,test_rotate,stepnum_side)
+			if (check==0) :
+				all_pose.append(ori_grasp)
+			else:
+				extra_pose = regrasp(ori_grasp,last_pose,test_rotate,check)
+				x = []
+				y = []
+				z = []
+				for pose in extra_pose:
+					for point in pose:
+						x.append(point[0])
+						y.append(point[1])
+						z.append(i)
+					all_pose.append(pose)
+					ax.scatter(x, y, z ,c='b',marker='x')
+					# ax.plot_wireframe(x, y, z,alpha=0.1)
+				all_pose.append(ori_grasp)
+				print "RREEEGRAAASSSPPPP"
+		else:
+			all_pose.append(ori_grasp)
+
+		last_pose = ori_grasp
+		last_ind = ind
+			
+		
 	
 	#print "Center of Obs", findCenterPoint(obs_3)
 	# RRT Test Stuff
-	test_rrt_node = bidirectionalRRT([20.1,20.1],[20.1,-20.5],obs_1)
-	
-	x = []
-	y = []
-	z = []
-	for node in test_rrt_node:
-		x.append(node.x)
-		y.append(node.y)
-		z.append(1)
-	ax.scatter(x, y, z ,c='b',marker='.')
+# 	[17.712376928240996, 15.390656589485101]
+# [10.311221522147784, 21.069762874806809]
+	# test_rrt_node = bidirectionalRRT([75, 75],[-75, -75],obs_1)
+
+	# x = []
+	# y = []
+	# z = []
+	# for node in test_rrt_node:
+	# 	x.append(node.x)
+	# 	y.append(node.y)
+	# 	z.append(-1)
+	# ax.scatter(x, y, z ,c='b',marker='.')
 	# ax.plot_wireframe(x, y, z)
 	ax.set_xlabel('X axis')
 	ax.set_ylabel('Y axis')
