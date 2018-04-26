@@ -30,12 +30,16 @@ import copy
 import math
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import numpy as np
 import random
 
 
 # Some predefine Object
-obs_1 = [[20.0,20.0],[20.0,-20.0],[-20.0,-20.0],[-20.0,20.0]]
+obs_1 = [[-15.0,26.0],[15.0,26.0],[26.0,0.0],[15.0,-26.0],[-15.0,-26.0],[-26.0,0.0]]
+obs_1_tri = [[-20.0,20.0],[-20.0,-20.0],[20.0,0.0]]
+obs_1_rect = [[25.0,20.0],[25.0,-20.0],[-25.0,-20.0],[-25.0,20.0]]
+obs_1_square = [[20.0,20.0],[20.0,-20.0],[-20.0,-20.0],[-20.0,20.0]]
 obs_2 = [[20.0,0],[0.0,-20.0],[-20.0,0],[0.0,20.0]]
 obs_3 = [[25.0,0],[5.0,-20.0],[-25.0,0],[5.0,20.0]]
 # Pos of finger for ref
@@ -51,8 +55,13 @@ offset.append(offset_f3)
 # Angle offset for eq tri
 off_30dg = 0.0
 # RRT Stuff
-NUMNODES = 500
-EPSILON = 0.5 # 7
+NUMNODES = 1000
+
+# for square
+# EPSILON = 1.0 # 7
+# RADIUS=3.0 #15
+# for rect
+EPSILON = 1.0 # 7
 RADIUS=3.0 #15
 
 # Global CS
@@ -225,11 +234,30 @@ def checkIntersect(nodeA,nodeB,OBS):
 	C=OBS[0]
 	D=OBS[1]
 	E=OBS[2]
-	F=OBS[3]
-	inst1 = intersect(A,B,C,D)
-	inst2 = intersect(A,B,D,E)
-	inst3 = intersect(A,B,E,F)
-	inst4 = intersect(A,B,F,C)
+	if (len(OBS) == 4):
+		F=OBS[3]
+		inst1 = intersect(A,B,C,D)
+		inst2 = intersect(A,B,D,E)
+		inst3 = intersect(A,B,E,F)
+		inst4 = intersect(A,B,F,C)
+	elif (len(OBS) == 3):
+		inst1 = intersect(A,B,C,D)
+		inst2 = intersect(A,B,D,E)
+		inst3 = intersect(A,B,E,C)
+		inst4 = False
+	else:
+		F=OBS[3]
+		G=OBS[4]
+		H=OBS[4]
+		inst1 = intersect(A,B,C,D) and intersect(A,B,D,E) and intersect(A,B,E,F) 
+		inst2 = intersect(A,B,F,G) and intersect(A,B,G,H) and intersect(A,B,H,C)
+		inst3 = False
+		inst4 = False
+		
+	# inst1 = intersect(A,B,C,D)
+	# inst2 = intersect(A,B,D,E)
+	# inst3 = intersect(A,B,E,F)
+	# inst4 = intersect(A,B,F,C)
 	# inst5 = checkOutside(C,D,E,F,A)
 	# inst6 = checkOutside(C,D,E,F,B)
 	if inst1==False and inst2==False and inst3==False and inst4==False: #and \
@@ -307,8 +335,8 @@ def rrt(startAPoint,endAPoint,OBS):
 def bidirectionalRRT(startAPoint,endAPoint,OBS):
 	#initialize and prepare screen
 	nodes = []
-	XDIM = 80.0
-	YDIM = 80.0
+	XDIM = 160.0
+	YDIM = 160.0
 	#nodes.append(Node(XDIM/2.0,YDIM/2.0)) # Start in the center
 	nodes.append(Node(startAPoint[0],startAPoint[1]))
 	start=nodes[0]
@@ -333,6 +361,7 @@ def bidirectionalRRT(startAPoint,endAPoint,OBS):
 		newnode = Node(interpolatedNode[0],interpolatedNode[1])
 		# Assign this newnode1 for the goal tree
 		newnode1 = Node(interpolatedNode[0],interpolatedNode[1])
+		newnode_goal = None
 		if checkIntersect(nn,rand,OBS):
 		  
 			[newnode,nn]=chooseParent(nn,newnode,nodes,OBS);
@@ -382,7 +411,12 @@ def bidirectionalRRT(startAPoint,endAPoint,OBS):
 					nodes_goal.append(newnode_goal)
 					nodes_goal=reWire(nodes_goal, newnode_goal,OBS)
 					
-
+		if (newnode_goal == None):
+			newnode_goal = newnode
+			path = []
+			path.append(start)
+			path.append(goal)
+			return path
 	# draw from the previous newnode and newnode_goal when we break out of for loop
 	#print("Path legnth: " + str(newnode.cost+newnode_goal.cost))	# print out cost length
 	return getSolutionPath(start,newnode,nodes) + getSolutionPath(goal,newnode_goal,nodes_goal)
@@ -403,12 +437,12 @@ def regrasp(start,end,obs,check):
 	startNode = copy.deepcopy(start[check-1])
 	test_start_node = copy.deepcopy(start[check-1])
 	list_extra_poses.append(test_start_node)
-	startNode[0] = round(startNode[0]+np.sign(startNode[0])*2,1)
-	startNode[1] = round(startNode[1]+np.sign(startNode[1])*2,1)
+	startNode[0] = round(startNode[0]+np.sign(startNode[0])*3,1)
+	startNode[1] = round(startNode[1]+np.sign(startNode[1])*3,1)
 	#print startNode
 	endNode = copy.deepcopy(end[check-1])
-	endNode[0] = round(endNode[0] + np.sign(endNode[0])*2,1)
-	endNode[1] = round(endNode[1] + np.sign(endNode[1])*2,1)
+	endNode[0] = round(endNode[0] + np.sign(endNode[0])*3,1)
+	endNode[1] = round(endNode[1] + np.sign(endNode[1])*3,1)
 	#print endNode
 	
 	list_extra_poses = nodeToList(bidirectionalRRT(startNode,endNode,obs))
@@ -459,16 +493,16 @@ def forward_kinematics(f1,k1,f2,k2,f3,k3):
 	z1 = ly_f1 
 
 	# Finger f2:
-	lx_f2 = fl_1*math.cos(f2)+fl_2*math.cos(f2+f1*b_c)
-	ly_f2 = fl_1*math.sin(f2)+fl_2*math.sin(f2+f1*b_c)
+	lx_f2 = fl_1*math.cos(f2)+fl_2*math.cos(f2+f2*b_c)
+	ly_f2 = fl_1*math.sin(f2)+fl_2*math.sin(f2+f2*b_c)
 	x2 = lx_f2*math.cos(k2) + offset_f2[0]
 	y2 = lx_f2*math.sin(k2) + offset_f2[1]
 	z2 = ly_f2
 
 	# Finger f3:
-	lx_f3 = fl_1*math.cos(f1)+fl_2*math.cos(f1+f1*b_c)
-	ly_f3 = fl_1*math.sin(f1)+fl_2*math.sin(f1+f1*b_c)
-	x3 = -lx_f3*math.cos(k3) + offset_f3[0]
+	lx_f3 = fl_1*math.cos(f3)+fl_2*math.cos(f3+f3*b_c)
+	ly_f3 = fl_1*math.sin(f3)+fl_2*math.sin(f3+f3*b_c)
+	x3 = lx_f3*math.cos(k3) + offset_f3[0]
 	y3 = lx_f3*math.sin(k3) + offset_f3[1]
 	z3 = ly_f3
 
@@ -476,7 +510,13 @@ def forward_kinematics(f1,k1,f2,k2,f3,k3):
 	x = [x1,x2,x3]
 	y = [y1,y2,y3]
 	z = [z1,z2,z3]
-	return [x,y,z]
+	p1 = [x1,y1,z1]
+	p2 = [x2,y2,z2]
+	p3 = [x3,y3,z3]
+	
+	# return [x,y,z]
+	return [p1,p2,p3]
+
 def fw_kin_single(f,k,num):
 	b_c  = 0.25  # bend constant of flexible finger 
 	fl_1 = 77.82 # finger length 1: unit mm
@@ -564,15 +604,116 @@ def closestConfigspace(p1,p2,p3):
 	# return 3 current config each is just (f,k)
 	return [current_config_1,current_config_2,current_config_3]
 
+# Testing figure stuff
+global fig,ax,ax2,index,all_pose, all_pose_rect,ax3
+global all_pose_after_kin
+
+fig = plt.figure(figsize=(20,6))
+ax = fig.add_subplot(131, projection='3d')
+ax2 = fig.add_subplot(132, projection='3d')
+ax3 = fig.add_subplot(133, projection='3d')
+index = 0
+all_pose = []
+all_pose_after_kin = []
+all_pose_rect = []
+
+def updateData(num):
+	global fig,ax,ax2,index,all_pose,all_pose_after_kin,ax3
+	ax2.clear()
+	ax2.set_xlim(-40, 40)
+	ax2.set_ylim(-40, 40)
+	ax2.set_zlim(0, 200)
+	ax2.set_xlabel('X axis')
+	ax2.set_ylabel('Y axis')
+	ax2.set_zlabel('Z axis')
+	ax3.clear()
+	ax3.set_xlim(-40, 40)
+	ax3.set_ylim(-40, 40)
+	ax3.set_zlim(50, 150)
+	ax3.set_xlabel('X axis')
+	ax3.set_ylabel('Y axis')
+	ax3.set_zlabel('Z axis')
+	x = []
+	y = []
+	z = []
+	if (index > 4):
+		for point in all_pose[index]:
+			x.append(point[0])
+			y.append(point[1])
+			z.append(10)
+		ax2.scatter(x, y, z ,c='r',marker='o')
+
+		for i in range(0,6):
+			for point in all_pose[index-i]:
+				x.append(point[0])
+				y.append(point[1])
+				z.append(10)
+		ax2.scatter(x, y, z ,c='b',marker='.',alpha=0.5)
+
+	else:
+		for point in all_pose[index]:
+			x.append(point[0])
+			y.append(point[1])
+			z.append(10)
+		ax2.scatter(x, y, z ,c='r',marker='o')
+	index = index + 1 
+	# if (index > 4):
+
+	# 	#draw path
+	# 	for point in all_pose_after_kin[index]:
+	# 		x.append(point[0])
+	# 		y.append(point[1])
+	# 		z.append(point[2])
+	# 	ax2.scatter(x, y, z ,c='r',marker='o')
+		
+	# 	for i in range(0,6):
+	# 		for point in all_pose_after_kin[index-i]:
+	# 			x.append(point[0])
+	# 			y.append(point[1])
+	# 			z.append(point[2])
+	# 	ax2.scatter(x, y, z ,c='b',marker='.',alpha=0.5)
+
+	# 	#draw triangle
+	# 	# for i in range(0,2):
+	# 	# 	for point in all_pose_after_kin[index-i]:
+	# 	# 		x.append(point[0])
+	# 	# 		y.append(point[1])
+	# 	# 		z.append(point[2])
+	# 	# ax2.scatter(x, y, z ,c='b',marker='.',alpha=0.5)
+		
+	# 	# ax2.plot_wireframe(x, y, z)
+
+	# else:
+	# 	for point in all_pose_after_kin[index]:
+	# 		x.append(point[0])
+	# 		y.append(point[1])
+	# 		z.append(point[2])
+	# 	ax2.scatter(x, y, z ,c='r',marker='o')
+	# 	# ax2.plot_wireframe(x, y, z)
+
+	x = []
+	y = []
+	z = []
+	for point in all_pose_rect[index]:
+		x.append(point[0])
+		y.append(point[1])
+		z.append(100)
+	ax3.plot_wireframe(x, y, z)
+
+	index = index + 1 
+	if ((index == len(all_pose)) or (index > len(all_pose_rect)-1)):
+		index = 0;
+	#ax2.scatter(x, y, z ,c='r',marker=',')
 # main function
 if __name__ == "__main__":
-	fig = plt.figure()
-	ax = fig.add_subplot(111, projection='3d')
+	global fig,ax,ax2,index,all_pose
 	# Initial Angle setup stuff
 	off_30dg = np.radians(30)
 	all_pose = []
+	all_pose_rect = []
+	index = 0
 	stepnum_side = 10
-	stepnum_time = 10
+	stepnum_time = 72
 
 	# Rotate Test and Grasp Planning Structure
 	for i in range(0,stepnum_time):
@@ -587,7 +728,7 @@ if __name__ == "__main__":
 			x.append(point[0])
 			y.append(point[1])
 			z.append(i)
-		#ax.scatter(x, y, z ,c='r',marker='.',alpha=0.4)
+		# ax.scatter(x, y, z ,c='r',marker='.',alpha=0.4)
 		ax.plot_wireframe(x, y, z,alpha=0.1)
 		
 		# draw original grasp
@@ -609,6 +750,7 @@ if __name__ == "__main__":
 			check = detectRegrasp(ind,last_ind,test_rotate,stepnum_side)
 			if (check==0) :
 				all_pose.append(ori_grasp)
+				all_pose_rect.append(obs_points)
 			else:
 				extra_pose = regrasp(ori_grasp,last_pose,test_rotate,check)
 				x = []
@@ -620,12 +762,15 @@ if __name__ == "__main__":
 						y.append(point[1])
 						z.append(i)
 					all_pose.append(pose)
+					all_pose_rect.append(obs_points)
 					ax.scatter(x, y, z ,c='b',marker='x')
 					# ax.plot_wireframe(x, y, z,alpha=0.1)
 				all_pose.append(ori_grasp)
+				all_pose_rect.append(obs_points)
 				print "RREEEGRAAASSSPPPP"
 		else:
 			all_pose.append(ori_grasp)
+			all_pose_rect.append(obs_points)
 
 		last_pose = ori_grasp
 		last_ind = ind
@@ -640,6 +785,24 @@ if __name__ == "__main__":
 	print config_test
 	print forward_kinematics(finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1])
 	
+	global all_pose_after_kin
+	all_pose_after_kin = []
+	x = []
+	y = []
+	z = []
+	# for pose in all_pose:
+	# 	config_test = closestConfigspace(pose[0],pose[1],pose[2])
+	# 	finger1 = list(config_test[0])
+	# 	finger2 = list(config_test[1])
+	# 	finger3 = list(config_test[2])
+	# 	fw_kin = forward_kinematics(finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1])
+	# 	#print fw_kin
+	# 	all_pose_after_kin.append(fw_kin)
+
+	ani = animation.FuncAnimation(fig, updateData,frames=np.arange(0, len(all_pose)),interval=200)
+	# ani = animation.FuncAnimation(fig, updateData,frames=np.arange(0, 50),interval=200)
+	ani.save('hex.gif', dpi=80, writer='imagemagick')
+
 	#print "Center of Obs", findCenterPoint(obs_3)
 	# RRT Test Stuff ############################################
 # 	[17.712376928240996, 15.390656589485101]
@@ -655,7 +818,7 @@ if __name__ == "__main__":
 	# 	z.append(-1)
 	# ax.scatter(x, y, z ,c='b',marker='.')
 	# ax.plot_wireframe(x, y, z)
-	ax.set_xlabel('X axis')
-	ax.set_ylabel('Y axis')
-	ax.set_zlabel('Z axis')
+	# s
+
+	
 	plt.show()
