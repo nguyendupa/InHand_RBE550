@@ -9,7 +9,44 @@ test = "../Klampt/data/robots/baxter_with_parallel_gripper_col.rob"
 global rotateXPoints2
 global numstep
 global allpose
-rotateXPoints2 = [[0.7853899999999996, 0.7853899999999996, 1.73257, 0.02, 0.0],\
+rotateXPoints2 = [[2.16769893098,0.373064127614,2.04988920647,-1.23700210735,0.824668071567,-0.565486677646],\
+[2.16769893098,0.333794219444,2.02632726157,-1.27627201552,0.918915851175,-0.659734457254],\
+[2.19126087588,0.373064127614,2.00276531666,-1.31554192369,0.871791961371,-0.659734457254],\
+[1.43727863902,-0.294524311274,1.72002197784,0.333794219444,1.29590696961,1.38230076758],\
+[2.21482282078,0.373064127614,2.00276531666,-1.29590696961,0.801106126665,-0.471238898038],\
+[2.19126087588,0.333794219444,1.97920337176,-1.33517687778,0.824668071567,-0.53407075111],\
+[2.19126087588,0.294524311274,1.93207948196,-1.35481183186,0.848230016469,-0.565486677646],\
+[2.23838476568,0.314159265359,1.97920337176,-1.31554192369,0.848230016469,-0.628318530718],\
+[2.21482282078,0.274889357189,1.95564142686,-1.33517687778,0.871791961371,-0.659734457254],\
+[1.50796447372,0.922842841992,1.67289808804,0.373064127614,1.31946891451,1.53938040026],\
+[2.28550865549,0.412334035784,2.09701309627,-1.25663706144,0.848230016469,-0.439822971503],\
+[2.26194671058,0.373064127614,2.07345115137,-1.29590696961,0.871791961371,-0.471238898038],\
+[2.23838476568,0.412334035784,2.04988920647,-1.33517687778,0.848230016469,-0.439822971503],\
+[2.21482282078,0.373064127614,2.02632726157,-1.37444678595,0.871791961371,-0.471238898038],\
+[2.19126087588,0.333794219444,1.97920337176,-1.41371669412,0.871791961371,-0.502654824574],\
+[1.93207948196,1.55116137271,2.09701309627,-0.157079632679,0.942477796077,0.753982236862],\
+[2.16769893098,0.353429173529,2.09701309627,-1.27627201552,0.848230016469,-0.53407075111],\
+[2.19126087588,0.412334035784,2.07345115137,-1.19773219918,0.871791961371,-0.565486677646],\
+[2.16769893098,0.373064127614,2.04988920647,-1.23700210735,0.824668071567,-0.565486677646],\
+[2.16769893098,0.333794219444,2.02632726157,-1.27627201552,0.918915851175,-0.659734457254],\
+[2.19126087588,0.373064127614,2.00276531666,-1.31554192369,0.871791961371,-0.659734457254],\
+[1.43727863902,-0.294524311274,1.72002197784,0.333794219444,1.29590696961,1.38230076758],\
+[2.21482282078,0.373064127614,2.00276531666,-1.29590696961,0.801106126665,-0.471238898038],\
+[2.19126087588,0.333794219444,1.97920337176,-1.33517687778,0.824668071567,-0.53407075111],\
+[2.19126087588,0.294524311274,1.93207948196,-1.35481183186,0.848230016469,-0.565486677646],\
+[2.23838476568,0.314159265359,1.97920337176,-1.31554192369,0.848230016469,-0.628318530718],\
+[2.21482282078,0.274889357189,1.95564142686,-1.33517687778,0.871791961371,-0.659734457254],\
+[1.50796447372,0.922842841992,1.67289808804,0.373064127614,1.31946891451,1.53938040026],\
+[2.28550865549,0.412334035784,2.09701309627,-1.25663706144,0.848230016469,-0.439822971503],\
+[2.26194671058,0.373064127614,2.07345115137,-1.29590696961,0.871791961371,-0.471238898038],\
+[2.23838476568,0.412334035784,2.04988920647,-1.33517687778,0.848230016469,-0.439822971503],\
+[2.21482282078,0.373064127614,2.02632726157,-1.37444678595,0.871791961371,-0.471238898038],\
+[2.19126087588,0.333794219444,1.97920337176,-1.41371669412,0.871791961371,-0.502654824574],\
+[1.93207948196,1.55116137271,2.09701309627,-0.157079632679,0.942477796077,0.753982236862],\
+[2.16769893098,0.353429173529,2.09701309627,-1.27627201552,0.848230016469,-0.53407075111],\
+[2.19126087588,0.412334035784,2.07345115137,-1.19773219918,0.871791961371,-0.565486677646]]
+
+rotateXPoints2_ori = [[0.7853899999999996, 0.7853899999999996, 1.73257, 0.02, 0.0],\
  [0.848992, 0.7853899999999996, 1.73257, 0.060000000000000005, 0.0],\
   [0.848992, 0.7853899999999996, 1.73257, 0.509271, 0.0],\
    [0.848992, 0.955418, 1.73257, 0.509271, 0.0],\
@@ -39,22 +76,22 @@ global r2test
 r2test = [[0.795149, 0.78539, 1.73257, 0.179641, 0.0], [0.795149, 0.78539, 1.73257, 0.45964099999999997, 0.0], [0.955149, 0.943231, 1.57257, 0.4596410000000001, 0.0], [1.11515, 1.10323, 1.49257, 0.4596410000000001, 0.0], [1.11515, 1.10323, 1.49257, 0.087461, 0.0]]
 
 def generatePath(listPose,numstep):
-	allpose=[]
-	for i in range(0,len(listPose)-1):
-		#print "i: ", i
-		stepsize_f1 = (listPose[i+1][0]-listPose[i][0])/numstep
-		stepsize_f2 = (listPose[i+1][1]-listPose[i][1])/numstep
-		stepsize_f3 = (listPose[i+1][2]-listPose[i][2])/numstep
-		stepsize_p1 = (listPose[i+1][3]-listPose[i][3])/numstep
-		stepsize_p2 = (listPose[i+1][4]-listPose[i][4])/numstep
-		for j in range(0,numstep):
-			pose = [listPose[i][0]+j*stepsize_f1,listPose[i][1]+j*stepsize_f2,\
-			listPose[i][2]+j*stepsize_f3, listPose[i][3]+j*stepsize_p1,\
-			listPose[i][4]+j*stepsize_p2]
-			allpose.append(pose)
-	allpose.append(listPose[len(listPose)-1])
-	#print allpose
-	return allpose
+    allpose=[]
+    for i in range(0,len(listPose)-1):
+        #print "i: ", i
+        stepsize_f1 = (listPose[i+1][0]-listPose[i][0])/numstep
+        stepsize_f2 = (listPose[i+1][1]-listPose[i][1])/numstep
+        stepsize_f3 = (listPose[i+1][2]-listPose[i][2])/numstep
+        stepsize_p1 = (listPose[i+1][3]-listPose[i][3])/numstep
+        stepsize_p2 = (listPose[i+1][4]-listPose[i][4])/numstep
+        for j in range(0,numstep):
+            pose = [listPose[i][0]+j*stepsize_f1,listPose[i][1]+j*stepsize_f2,\
+            listPose[i][2]+j*stepsize_f3, listPose[i][3]+j*stepsize_p1,\
+            listPose[i][4]+j*stepsize_p2]
+            allpose.append(pose)
+    allpose.append(listPose[len(listPose)-1])
+    #print allpose
+    return allpose
 
 allpose = generatePath(r3,numstep)
 
@@ -110,46 +147,61 @@ class MyGLViewer(GLSimulationPlugin):
         # print "Robot Config After: " , test
         # robot.setConfig(test)
     def function_z(self):
-    	sim = self.sim
+        sim = self.sim
         q=sim.controller(0).getCommandedConfig()
-    	currentPoint = [q[3],q[8],q[12],q[2],q[16]]
-    	self.waypoint.append(currentPoint)
-    	print "Save current pose", currentPoint
+        currentPoint = [q[3],q[8],q[12],q[2],q[16]]
+        self.waypoint.append(currentPoint)
+        print "Save current pose", currentPoint
 
     def function_n(self):
-    	sim = self.sim
+        sim = self.sim
         q=sim.controller(0).getCommandedConfig()
         # pose = finger1 finger2 finger3 preshapeCouple preshapeThumb
         for pose in allpose:
-        	q[3] = pose[0]
-        	q[8] = pose[1]
-        	q[12]= pose[2]
-        	q[2] = pose[3]
-        	q[16]= pose[4]
-        	sim.controller(0).addMilestone(q)
+            q[3] = pose[0]
+            q[4] = q[3]/4
+            q[8] = pose[1]
+            q[9] = q[8]/4
+            q[12]= pose[2]
+            q[13] = q[12]/4
+            q[2] = pose[3]
+            q[16]= pose[4]
+            sim.controller(0).addMilestone(q)
         print len(allpose)
         print "Done"
 
     def function_m(self):
-    	sim = self.sim
-    	q=sim.controller(0).getCommandedConfig()
+        sim = self.sim
+        q=sim.controller(0).getCommandedConfig()
         # pose = finger1 finger2 finger3 preshapeCouple preshapeThumb
-        
-    	q[3] = rotateXPoints2[self.step][0]
-    	q[8] = rotateXPoints2[self.step][1]
-    	q[12]= rotateXPoints2[self.step][2]
-    	q[2] = rotateXPoints2[self.step][3]
-    	q[16]= rotateXPoints2[self.step][4]
-    	sim.controller(0).setMilestone(q)
-    	if (self.step < len(rotateXPoints2)-1):
-    		self.step = self.step + 1
-    	else: 
-    		self.step = 0 
+        # Original rotate
+        # q[3] = rotateXPoints2[self.step][0]
+        # q[8] = rotateXPoints2[self.step][1]
+        # q[12]= rotateXPoints2[self.step][2]
+        # q[2] = rotateXPoints2[self.step][3]
+        # q[16]= rotateXPoints2[self.step][4]
+
+        #6DOF rotate
+        q[3] = rotateXPoints2[self.step][0]
+        q[4] = q[3]/4
+        q[8] = rotateXPoints2[self.step][2]
+        q[9] = q[8]/4
+        q[12]= rotateXPoints2[self.step][4]
+        q[13] = q[12]/4
+        q[2] = rotateXPoints2[self.step][1]
+        q[7] = -rotateXPoints2[self.step][3]
+        q[16]= rotateXPoints2[self.step][5]
+
+        sim.controller(0).setMilestone(q)
+        if (self.step < len(rotateXPoints2)-1):
+            self.step = self.step + 1
+        else: 
+            self.step = 0 
         print "Step:", self.step
         print "Done:", len(rotateXPoints2)
 
     def function_p(self):
-    	print self.waypoint
+        print self.waypoint
 
     def function_f(self):
 
@@ -157,8 +209,8 @@ class MyGLViewer(GLSimulationPlugin):
         q=sim.controller(0).getCommandedConfig()
         q[12] +=0.08
         sim.controller(0).setMilestone(q)
-	
-	# preshape 1
+    
+    # preshape 1
     def function_q(self):
         sim = self.sim
         q=sim.controller(0).getCommandedConfig()
@@ -220,26 +272,26 @@ class MyGLViewer(GLSimulationPlugin):
         sim = self.sim
         q=sim.controller(0).getCommandedConfig()
         q[12] +=0.08
-        q[13] = q[13]/4 
+        q[13] = q[12]/4 
         sim.controller(0).setMilestone(q)
 
     def function_j(self):
         sim = self.sim
         q=sim.controller(0).getCommandedConfig()
         q[12] -=0.08
-        q[13] = q[13]/4
+        q[13] = q[12]/4
         sim.controller(0).setMilestone(q)
 
     def control_loop(self):
         #Put your control handler here
         # sim = self.sim
         # if sim.getTime() >= 2.0 and sim.getTime()-self.dt < 2.0:
-        #     q=sim.controller(0).getCommandedConfig()
-        #     q[3]-=0.40
-        #     sim.controller(0).setMilestone(q)
-        #     q[3]+=0.45
-        #     sim.controller(0).addMilestone(q)
-        #     print("Testing in here")
+        #   q=sim.controller(0).getCommandedConfig()
+        #   q[3]-=0.40
+        #   sim.controller(0).setMilestone(q)
+        #   q[3]+=0.45
+        #   sim.controller(0).addMilestone(q)
+        #   print("Testing in here")
         sim = self.sim
         
         if sim.getTime() >= 2.0 and sim.getTime()-self.dt < 2.0:

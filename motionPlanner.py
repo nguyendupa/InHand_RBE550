@@ -33,12 +33,17 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 import random
-
+import time
 
 # Some predefine Object
-obs_1 = [[-15.0,26.0],[15.0,26.0],[26.0,0.0],[15.0,-26.0],[-15.0,-26.0],[-26.0,0.0]]
+obs_1 = [[40.0,40.0],[40.0,-40.0],[-40.0,-40.0],[-40.0,40.0]]
+obs_1_hex = [[-15.0,26.0],[15.0,26.0],[26.0,0.0],[15.0,-26.0],[-15.0,-26.0],[-26.0,0.0]]
+obs_1_hex_2 = [[-12.5,21.64],[12.5,21.64],[21.64,0.0],[12.5,-21.64],[-12.5,-21.64],[-21.64,0.0]]
 obs_1_tri = [[-20.0,20.0],[-20.0,-20.0],[20.0,0.0]]
+obs_1_tri_2 = [[-30.5,-17.60],[30.5,-17.60],[0.0,35.218]]
 obs_1_rect = [[25.0,20.0],[25.0,-20.0],[-25.0,-20.0],[-25.0,20.0]]
+obs_1_rect_2 = [[24.0,16.0],[24.0,-16.0],[-24.0,-16.0],[-24.0,16.0]]
+
 obs_1_square = [[20.0,20.0],[20.0,-20.0],[-20.0,-20.0],[-20.0,20.0]]
 obs_2 = [[20.0,0],[0.0,-20.0],[-20.0,0],[0.0,20.0]]
 obs_3 = [[25.0,0],[5.0,-20.0],[-25.0,0],[5.0,20.0]]
@@ -55,7 +60,7 @@ offset.append(offset_f3)
 # Angle offset for eq tri
 off_30dg = 0.0
 # RRT Stuff
-NUMNODES = 1000
+NUMNODES = 2000
 
 # for square
 # EPSILON = 1.0 # 7
@@ -67,6 +72,7 @@ RADIUS=3.0 #15
 # Global CS
 global CS1,CS2,CS3
 
+global totalCost,totalNode
 # distance between two points
 def dist(p1,p2):
 	return math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
@@ -300,8 +306,8 @@ def rrt(startAPoint,endAPoint,OBS):
 	#a=checkIntersect()
 	#print(a)
 	nodes = []
-	XDIM = 80
-	YDIM = 80
+	XDIM = 160
+	YDIM = 160
 	#nodes.append(Node(XDIM/2.0,YDIM/2.0)) # Start in the center
 	nodes.append(Node(startAPoint[0],startAPoint[1])) 
 	start=nodes[0]
@@ -327,13 +333,14 @@ def rrt(startAPoint,endAPoint,OBS):
 				[goal,newnode]=chooseParent(newnode,goal,nodes,OBS);
 				nodes.append(goal)
 				nodes=reWire(nodes,goal,OBS)
-				print("RRT finished")
+				#print("RRT finished")
 				break
 	return getSolutionPath(start,goal,nodes)
 
 # Bi directional RRT* 
 def bidirectionalRRT(startAPoint,endAPoint,OBS):
 	#initialize and prepare screen
+	global totalNode,totalCost
 	nodes = []
 	XDIM = 160.0
 	YDIM = 160.0
@@ -392,7 +399,8 @@ def bidirectionalRRT(startAPoint,endAPoint,OBS):
 				if (dist([nn_goal.x,nn_goal.y],[rand_goal.x,rand_goal.y]) < RADIUS):
 
 					# start tree end with new node, and goal tree end with newnode_goal
-					print("Bidirectional RRT star")
+					totalNode = totalNode + i
+					#print("Bidirectional RRT star")
 					break
 			else:
 				# if no then random again for extend type
@@ -416,9 +424,11 @@ def bidirectionalRRT(startAPoint,endAPoint,OBS):
 			path = []
 			path.append(start)
 			path.append(goal)
+			#totalNode = totalNode + i
 			return path
 	# draw from the previous newnode and newnode_goal when we break out of for loop
 	#print("Path legnth: " + str(newnode.cost+newnode_goal.cost))	# print out cost length
+	totalCost = totalCost + newnode.cost+newnode_goal.cost
 	return getSolutionPath(start,newnode,nodes) + getSolutionPath(goal,newnode_goal,nodes_goal)
 def nodeToList(nodes):
 	listofnode = []
@@ -430,7 +440,7 @@ def nodeToList(nodes):
 # obs current obs config 4 p (x,y)
 def regrasp(start,end,obs,check):
 	#test_rrt_node = bidirectionalRRT(start,end,obs)
-	print "Star Regrasp"
+	#print "Star Regrasp"
 	resultPose = []
 	list_extra_poses = []
 
@@ -465,14 +475,14 @@ def regrasp(start,end,obs,check):
 def detectRegrasp(current,last,obs,stepnum_side):
 	inst1 = [int(last[0]/stepnum_side),int(last[1]/stepnum_side),int(last[2]/stepnum_side)]
 	inst2 = [int(current[0]/stepnum_side),int(current[1]/stepnum_side),int(current[2]/stepnum_side)]
-	print current
-	print last
-	print inst1
-	print inst2
+	#print current
+	#print last
+	#print inst1
+	#print inst2
 	for i in range(0,len(inst1)):
 		if not ((inst1[i] == inst2[i]) or (current[i]%stepnum_side == 0) \
 			or (last[i]%stepnum_side == 0)):
-			print "Detect Regrasp at Finger: ", (i+1)
+			#print "Detect Regrasp at Finger: ", (i+1)
 			return (i+1)
 	return 0
 
@@ -707,101 +717,132 @@ def updateData(num):
 # main function
 if __name__ == "__main__":
 	global fig,ax,ax2,index,all_pose
+	global totalCost,totalNode
+
 	# Initial Angle setup stuff
 	off_30dg = np.radians(30)
-	all_pose = []
-	all_pose_rect = []
-	index = 0
-	stepnum_side = 10
-	stepnum_time = 72
-
-	# Rotate Test and Grasp Planning Structure
-	for i in range(0,stepnum_time):
-		test_rotate = rotateObs(obs_1, i*5)
-		# draw extended geometry
-		obs_points = extendGeometry(test_rotate,stepnum_side)
-		print "Length Obs: ", i
-		x = []
-		y = []
-		z = []
-		for point in obs_points:
-			x.append(point[0])
-			y.append(point[1])
-			z.append(i)
-		# ax.scatter(x, y, z ,c='r',marker='.',alpha=0.4)
-		ax.plot_wireframe(x, y, z,alpha=0.1)
-		
-		# draw original grasp
-
-		# Control loop for regrasp 
-		(ori_grasp, ind) = planStartGrasp(test_rotate)
-		x = []
-		y = []
-		z = []
-
-		for point in ori_grasp:
-			#print point
-			x.append(point[0])
-			y.append(point[1])
-			z.append(i)
-		ax.scatter(x, y, z ,c='r',marker='o',alpha=0.5)
-
-		if (i>0):
-			check = detectRegrasp(ind,last_ind,test_rotate,stepnum_side)
-			if (check==0) :
-				all_pose.append(ori_grasp)
-				all_pose_rect.append(obs_points)
-			else:
-				extra_pose = regrasp(ori_grasp,last_pose,test_rotate,check)
-				x = []
-				y = []
-				z = []
-				for pose in extra_pose:
-					for point in pose:
-						x.append(point[0])
-						y.append(point[1])
-						z.append(i)
-					all_pose.append(pose)
-					all_pose_rect.append(obs_points)
-					ax.scatter(x, y, z ,c='b',marker='x')
-					# ax.plot_wireframe(x, y, z,alpha=0.1)
-				all_pose.append(ori_grasp)
-				all_pose_rect.append(obs_points)
-				print "RREEEGRAAASSSPPPP"
-		else:
-			all_pose.append(ori_grasp)
-			all_pose_rect.append(obs_points)
-
-		last_pose = ori_grasp
-		last_ind = ind
+	profilingTime = []
+	totalCostList = []
+	totalNodeList = []
+	inversePose = []
+	startTime = time.time()
+	for runningTime in range(0,1):
+		all_pose = []
+		all_pose_rect = []
+		index = 0
+		stepnum_side = 10
+		stepnum_time = 36
+		totalCost = 0
+		totalNode = 0
+		# Rotate Test and Grasp Planning Structure
+		for i in range(0,stepnum_time):
+			test_rotate = rotateObs(obs_1, -i*5)
+			# draw extended geometry
+			obs_points = extendGeometry(test_rotate,stepnum_side)
+			#print "Length Obs: ", i
+			# x = []
+			# y = []
+			# z = []
+			# for point in obs_points:
+			# 	x.append(point[0])
+			# 	y.append(point[1])
+			# 	z.append(i)
+			# # ax.scatter(x, y, z ,c='r',marker='.',alpha=0.4)
+			# ax.plot_wireframe(x, y, z,alpha=0.1)
 			
-	# Kinematics Test ############################################
-	print forward_kinematics(0.0,0.0,0.0,0.0,0.0,0.0)
-	exploreCS()
-	config_test = closestConfigspace([164.0,31.0],[164.0,-31.0],[-164.0,0.0])
-	finger1 = list(config_test[0])
-	finger2 = list(config_test[1])
-	finger3 = list(config_test[2])
-	print config_test
-	print forward_kinematics(finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1])
-	
-	global all_pose_after_kin
-	all_pose_after_kin = []
-	x = []
-	y = []
-	z = []
-	# for pose in all_pose:
-	# 	config_test = closestConfigspace(pose[0],pose[1],pose[2])
-	# 	finger1 = list(config_test[0])
-	# 	finger2 = list(config_test[1])
-	# 	finger3 = list(config_test[2])
-	# 	fw_kin = forward_kinematics(finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1])
-	# 	#print fw_kin
-	# 	all_pose_after_kin.append(fw_kin)
+			# draw original grasp
 
-	ani = animation.FuncAnimation(fig, updateData,frames=np.arange(0, len(all_pose)),interval=200)
+			# Control loop for regrasp 
+			(ori_grasp, ind) = planStartGrasp(test_rotate)
+			# x = []
+			# y = []
+			# z = []
+
+			# for point in ori_grasp:
+			# 	#print point
+			# 	x.append(point[0])
+			# 	y.append(point[1])
+			# 	z.append(i)
+			# ax.scatter(x, y, z ,c='r',marker='o',alpha=0.5)
+
+			if (i>0):
+				check = detectRegrasp(ind,last_ind,test_rotate,stepnum_side)
+				if (check==0) :
+					all_pose.append(ori_grasp)
+					all_pose_rect.append(obs_points)
+				else:
+					extra_pose = regrasp(ori_grasp,last_pose,test_rotate,check)
+					# x = []
+					# y = []
+					# z = []
+					# for pose in extra_pose:
+					# 	for point in pose:
+					# 		x.append(point[0])
+					# 		y.append(point[1])
+					# 		z.append(i)
+					# 	all_pose.append(pose)
+					# 	all_pose_rect.append(obs_points)
+					# 	ax.scatter(x, y, z ,c='b',marker='x')
+						# ax.plot_wireframe(x, y, z,alpha=0.1)
+					all_pose.append(ori_grasp)
+					all_pose_rect.append(obs_points)
+					#print "RREEEGRAAASSSPPPP"
+			else:
+				all_pose.append(ori_grasp)
+				all_pose_rect.append(obs_points)
+
+			last_pose = ori_grasp
+			last_ind = ind
+				
+		# Kinematics Test ############################################
+		# print forward_kinematics(0.0,0.0,0.0,0.0,0.0,0.0)
+		exploreCS()
+		# config_test = closestConfigspace([164.0,31.0],[164.0,-31.0],[-164.0,0.0])
+		# finger1 = list(config_test[0])
+		# finger2 = list(config_test[1])
+		# finger3 = list(config_test[2])
+		# print config_test
+		# print forward_kinematics(finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1])
+		
+		global all_pose_after_kin
+		all_pose_after_kin = []
+		# x = []
+		# y = []
+		# z = []
+		thefile = open('dataCube.txt', 'w')
+		for pose in all_pose:
+			config_test = closestConfigspace(pose[0],pose[1],pose[2])
+			finger1 = list(config_test[0])
+			finger2 = list(config_test[1])
+			finger3 = list(config_test[2])
+			fw_kin = forward_kinematics(finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1])
+			inversePose.append([finger1[0],finger1[1],finger2[0],finger2[1],finger3[0],finger3[1]])
+			item = "["+str(finger1[0]) + ","+ str(finger1[1])+ ","+str(finger2[0])+ ","+str(finger2[1])+ ","+str(finger3[0])+ ","+str(finger3[1])+"]"
+			thefile.write("%s\n" % item)
+			#print fw_kin
+			all_pose_after_kin.append(fw_kin)
+		thefile.close()
+		executionTime = time.time() - startTime
+		print "Execution Time: ", executionTime
+		startTime = time.time()
+		profilingTime.append(executionTime)
+		totalCostList.append(totalCost)
+		totalNodeList.append(totalNode)
+		# plt.show()
+
+	npProfilingTime = np.array(profilingTime)
+	npTotalCost = np.array(totalCostList)
+	npTotalNode = np.array(totalNodeList)
+	print profilingTime
+	print totalCostList
+	print totalNodeList
+	print "Mean of Execution Time: ", npProfilingTime.mean()
+	print "Mean of Total Cost: ", npTotalCost.mean()
+	print "Mean of Total Node: ", npTotalNode.mean()
+	
+	#ani = animation.FuncAnimation(fig, updateData,frames=np.arange(0, len(all_pose)),interval=200)
 	# ani = animation.FuncAnimation(fig, updateData,frames=np.arange(0, 50),interval=200)
-	ani.save('hex.gif', dpi=80, writer='imagemagick')
+	#ani.save('hex.gif', dpi=80, writer='imagemagick')
 
 	#print "Center of Obs", findCenterPoint(obs_3)
 	# RRT Test Stuff ############################################
@@ -821,4 +862,4 @@ if __name__ == "__main__":
 	# s
 
 	
-	plt.show()
+	
